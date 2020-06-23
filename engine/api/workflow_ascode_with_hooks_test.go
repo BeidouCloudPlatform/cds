@@ -66,7 +66,14 @@ func Test_WorkflowAsCodeWithNoHook_ShouldGive_AnAutomaticRepoWebHook(t *testing.
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "POST", "/operations", gomock.Any(), gomock.Any()).
-		Return(nil, 201, nil)
+		DoAndReturn(
+			func(ctx context.Context, method, path string, in interface{}, out interface{}) (http.Header, int, error) {
+				ope := new(sdk.Operation)
+				ope.UUID = UUID
+				ope.Status = sdk.OperationStatusPending
+				*(out.(*sdk.Operation)) = *ope
+				return nil, 201, nil
+			})
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "GET", "/vcs/github/repos/fsamin/go-repo/branches", gomock.Any(), gomock.Any(), gomock.Any()).
@@ -277,7 +284,14 @@ func Test_WorkflowAsCodeWithDefaultHook_ShouldGive_TheSameRepoWebHook(t *testing
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "POST", "/operations", gomock.Any(), gomock.Any()).
-		Return(nil, 201, nil).Times(2)
+		DoAndReturn(
+			func(ctx context.Context, method, path string, in interface{}, out interface{}) (http.Header, int, error) {
+				ope := new(sdk.Operation)
+				ope.UUID = UUID
+				ope.Status = sdk.OperationStatusPending
+				*(out.(*sdk.Operation)) = *ope
+				return nil, 201, nil
+			}).Times(2)
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "GET", "/vcs/github/repos/fsamin/go-repo", gomock.Any(), gomock.Any(), gomock.Any()).MinTimes(0)
@@ -311,7 +325,7 @@ func Test_WorkflowAsCodeWithDefaultHook_ShouldGive_TheSameRepoWebHook(t *testing
 		).MaxTimes(3)
 
 	servicesClients.EXPECT().
-		DoJSONRequest(gomock.Any(), "GET", gomock.Any(), gomock.Any(), gomock.Any()).
+		DoJSONRequest(gomock.Any(), "GET", "/operations/"+UUID, gomock.Any(), gomock.Any()).
 		DoAndReturn(
 			func(ctx context.Context, method, path string, in interface{}, out interface{}) (http.Header, int, error) {
 				ope := new(sdk.Operation)
@@ -348,7 +362,7 @@ version: v1.0`),
 				*(out.(*sdk.Operation)) = *ope
 				return nil, 200, nil
 			},
-		).Times(2)
+		).Times(3)
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "POST", "/task/bulk", gomock.Any(), gomock.Any()).
@@ -648,7 +662,7 @@ version: v1.0`),
 				*(out.(*sdk.Operation)) = *ope
 				return nil, 200, nil
 			},
-		).Times(2)
+		).Times(3)
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "POST", "/task/bulk", gomock.Any(), gomock.Any()).
@@ -917,7 +931,14 @@ func Test_WorkflowAsCodeWithJustAcheduler_ShouldGive_ARepoWebHookAndTheScheduler
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "POST", "/operations", gomock.Any(), gomock.Any()).
-		Return(nil, 201, nil).Times(3)
+		DoAndReturn(
+			func(ctx context.Context, method, path string, in interface{}, out interface{}) (http.Header, int, error) {
+				ope := new(sdk.Operation)
+				ope.UUID = UUID
+				ope.Status = sdk.OperationStatusPending
+				*(out.(*sdk.Operation)) = *ope
+				return nil, 201, nil
+			}).Times(3)
 
 	servicesClients.EXPECT().
 		DoJSONRequest(gomock.Any(), "GET", "/vcs/github/repos/fsamin/go-repo", gomock.Any(), gomock.Any(), gomock.Any()).MinTimes(0)
@@ -1002,7 +1023,7 @@ version: v1.0`),
 					*(out.(*sdk.Operation)) = *ope
 					return nil, 200, nil
 				},
-			).Times(1),
+			).Times(2),
 
 		servicesClients.EXPECT().
 			DoJSONRequest(gomock.Any(), "GET", gomock.Any(), gomock.Any(), gomock.Any()).
